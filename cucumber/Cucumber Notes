@@ -1,0 +1,203 @@
+ 
+ Cucumber Notes: 
+ 
+    It is a BDD tool. 
+ 					BDD- Behavior Driven Tool(Application). 
+ 					
+ 		We need to follow steps to work with cucumber. 
+ 		
+ 		1. feature file.  the file name starts with .feature 
+ 		
+ 			contains some keywords and it is written in plain english (Gherkin language) and the story of the behavior of the application -
+			
+			scenario
+		    given (keyword)
+			when (keyword)
+		    then (keyword)
+		    
+		    #Keywords Summary :
+								#Feature: List of scenarios.
+								#Scenario: Business rule through list of steps with arguments.
+								#Given: Some precondition step
+								#When: Some key actions
+								#Then: To observe outcomes or validation
+								#And,But: To enumerate more Given,When,Then steps
+								#Scenario Outline: List of steps for data-driven as an Examples and <placeholder>
+								#Examples: Container for s table
+								#Background: List of steps run before each of the scenarios
+								#""" (Doc Strings)
+								#| (Data Tables)
+								#@ (Tags/Labels):To group Scenarios
+								#<> (placeholder)
+								#""
+								## (Comments)
+		    
+		2. Step Definition file Or Glue file (Can be made by java, python etc)
+		
+			It contains the code according to the story/ description of the feature file. in other words, we define the steps of the 
+			feature file here by code. 
+			
+	    3. Runner.java file-
+	    
+	       It is configuration file of cucumber. Here, we define which stpes we will run by <tags>, and how we want the reports. 
+	       the file is similar test.xml file. 
+	       
+	       
+	       
+	  
+	    
+	    First we need to create a cucumber project in eclipse with the .jar below into the pom.xml file. 
+	    
+	    
+	    <dependencies>
+    <dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-junit</artifactId>
+    <version>7.5.0</version>
+    <scope>test</scope>
+       </dependency>
+
+        <dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-java</artifactId>
+    <version>7.5.0</version>
+    <scope>test</scope>
+        </dependency>
+   <!-- https://mvnrepository.com/artifact/junit/junit -->
+       <dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.13.2</version>
+    <scope>test</scope>
+       </dependency>
+      </dependencies>
+	    
+  
+    So, let's assume we have a demo application of bank where, 
+	    
+	    	we can deposit money. 
+	    	we can withdraw money
+	    	we can get balance. 
+	    	
+	    	
+	    Our job is to verify if the application works that is done by developer for the bank. 
+	    
+	    1. Create a class that contains the code for the bank application assuming it is written by developer. 
+	    
+	    2. we need to create a folder in the project and inside that, we will create a deposit.feature file. 
+	       inside the .feature file we will develop the story/scenario from the key word 
+	      
+	      @deposit
+	      
+	      Feature: Deposit
+	      
+	      Scenario Outline: to verify the deposit functionality. 
+	      
+	      Given:  I have an account with <init> amount            <init> act as variable/placeholder means interger value, if we use "<init>" then act as String
+	      
+	      When:   I deposit <some> amount in my account
+	      
+	      Then:   I verify the <balance> in my account
+	      
+	      Examples: this works like a data table and data provider. 
+	      
+	      |int| some| balance|
+	      
+	      |1000| 500| 1500|     -- this works like row and represents one scenario, one bank account
+	      
+	      |200 |some| 400|      -- this works like 2nd row and represents another scenario, another bank account
+	      
+	      
+	       now, right click on the page and select "pretty format"  and the above scenario will be arranged Nicely. 
+	       
+	       
+	      3. Step definition or Glue file, 
+	      
+	         Under src/test/java, we will create a package "steps"  and create a class with a name, for eaxmple DepositSteps
+	         
+	         Now, run as cucumber.feature the deposit.feature file and get the dummy code from the consolea nd paste it to the above class
+	         
+	         and delete the codes inside the method and check again by run as cucumber.feature the deposit.feature file  and check the console 
+	         
+	         if we missed any code. 
+	         
+	         Now inside the DepositSteps class, 
+	         
+	         take a variable, Bank bank;
+	         
+	         import org.junit.Assert;
+
+			import cucumber.cucumber.Bank;
+			import io.cucumber.java.en.Given;
+			import io.cucumber.java.en.Then;
+			import io.cucumber.java.en.When;
+			//import junit.framework.Assert;
+
+			public class DepositSteps {     // step definition or Glue file. 
+				
+				Bank bank;
+				
+				
+				@Given("I have an account with {int} amount")
+				public void i_have_an_account_with_amount(Integer init) {
+				    
+				  bank= new Bank (init);      
+				}
+			
+				@When("I deposit {int} amount in my account")
+				public void i_deposit_amount_in_my_account(Integer some) {
+				
+				 bank.deposit(some);
+				}
+			
+				@Then("I verify the {int} in my account")
+				public void i_verify_the_in_my_account(Integer balance) {
+				  
+				  int expected=balance;
+				  
+				  int actual= bank.getBalance();
+				  
+				  Assert.assertEquals(expected, actual);  // here the import will be from import junit.framework.Assert; but we need to use update version : import org.junit.Assert;
+				}
+			
+			
+			}
+	         
+	         
+	         
+	        4. Create a Runner file, under the steps package: 
+	        
+	        
+	        	@RunWith(Cucumber.class)     // 1st import Cucumber, 2nd RunWith, 3rd CucumberOptions import. 
+                @CucumberOptions(
+		
+					features="features",    // here, left features is the key the right features is the value(the name of the folder). 
+					
+					glue=  "steps",         // here, steps is the name of the package . 	
+					
+					plugin= {"pretty",      // here under pretty plugin the report can be generated into 2 options (json or html) under the target folder. 
+							
+							
+							// "json:target/report/json/output.json",   
+							
+							"html:target/report/html/index.html"},   	// we will see report as html. 
+					
+					tags= ("@deposit"))   //  tags means , which feature we want to run, here in deposit.feature we used @deposit. 
+										  //  so we will use this @deposit. One feature can hold lot of scenarios, and if we run a feature, all the scenarios will run.   
+
+				public class Runner {
+
+				}
+	        	
+	         ## Now we will run the program from this class as JUNIT because JUNIT is default with Cucumber. 
+	         
+	         
+	            JUNIT is similar to TestNG. 
+	            
+	            JUNIT used by developer
+	            
+	            TestNG used by Tester. 
+	            
+    
+ 
+ 
